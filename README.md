@@ -1,84 +1,96 @@
 # PFE
 
-**Cahier des charges pour l'application de gestion d'absences d'un organisme**
+# Cahier des charges pour l'application de suivi de présence sur site
 
-**1. Introduction**
+## 1. Introduction
 
-L'objectif de ce projet est de développer une application web utilisant Java Spring Boot pour le backend et Vue.js pour le frontend. L'application sera conçue pour gérer les absences des employés d'un organisme, en se basant sur les informations fournies dans un fichier Excel. Elle permettra également de générer des statistiques sur les heures travaillées par chaque employé, ainsi que sur la présence sur site, à la fois au niveau individuel et par équipe.
+L'objectif de ce projet est de concevoir et développer une application web pour automatiser le suivi de la présence sur site des employés d'un organisme. L'application doit être réalisée en utilisant les technologies Java Spring Boot pour le backend et Vue.js pour le frontend.
 
-**2. Fonctionnalités de base**
+## 2. Objectifs
 
-2.1. Importation de données depuis un fichier Excel :
-- L'application doit pouvoir importer les données relatives aux employés à partir d'un fichier Excel.
-- Les données importées comprendront les détails sur chaque employé (nom, prénom, numéro d'identification, etc.) ainsi que les informations sur leur présence sur site ou en mode hybride, et les jours d'absence.
+### 2.1 Objectif général
 
-2.2. Gestion des horaires de travail :
-- L'application devra tenir compte des horaires de travail de base, définis à 40 heures par semaine.
-- Les heures travaillées par chaque employé seront calculées en fonction des informations fournies dans le fichier Excel.
+Développer une application permettant de gérer efficacement le suivi de présence sur site des employés d'un organisme à partir d'un fichier Excel contenant les informations de présence de chaque employé pour chaque jour du mois.
 
-2.3. Calcul des statistiques :
-- L'application générera des statistiques pour chaque employé, indiquant le pourcentage d'heures travaillées par rapport aux heures de travail prévues.
-- Elle calculera également le nombre de jours où chaque employé était présent sur site.
+### 2.2 Objectifs spécifiques
 
-2.4. Gestion par équipe (squad) :
-- Les statistiques seront également disponibles au niveau de chaque équipe (squad), permettant de voir combien de membres ont travaillé sur site.
+1. Création d'une interface utilisateur conviviale pour importer un fichier Excel contenant les données de présence des employés.
+2. Implémentation d'un backend robuste en Java Spring Boot pour traiter les données du fichier Excel et effectuer des calculs statistiques.
+3. Développement d'un frontend dynamique en Vue.js permettant d'afficher les données de présence et les statistiques générées.
+4. Analyse des données pour chaque employé afin de déterminer le nombre de jours travaillés sur site.
+5. Génération de statistiques pour chaque équipe (squad) afin de voir combien de membres ont travaillé sur site.
 
-**3. Interface utilisateur**
+## 3. Fonctionnalités
 
-3.1. Interface d'importation de fichier :
-- Une interface intuitive permettra à l'utilisateur d'importer un fichier Excel contenant les données des employés.
+### 3.1 Backend (Java Spring Boot)
 
-3.2. Tableau de bord :
-- Un tableau de bord convivial affichera les statistiques générales sur les heures travaillées et la présence sur site.
-- Des graphiques clairs et des tableaux récapitulatifs aideront à visualiser les données.
+1. Endpoint pour importer un fichier Excel contenant les données de présence.
+2. Fonctionnalités de lecture et de traitement des données Excel pour extraire les informations pertinentes.
+3. Calcul du nombre de jours travaillés sur site pour chaque employé.
+4. Calcul des statistiques pour chaque squad sur le nombre de membres travaillant sur site.
 
-3.3. Affichage des détails de chaque employé :
-- L'application permettra de consulter les détails individuels de chaque employé, y compris son historique d'absences et de présence sur site.
+### 3.2 Frontend (Vue.js)
 
-**4. Contraintes techniques**
+1. Interface utilisateur pour importer un fichier Excel.
+2. Affichage des données de présence pour chaque employé.
+3. Affichage des statistiques sur le nombre de jours travaillés sur site pour chaque employé.
+4. Affichage des statistiques sur le nombre de membres travaillant sur site pour chaque squad.
 
-4.1. Backend :
-- Utilisation de Java Spring Boot pour le développement du backend.
-- Les données seront stockées dans une base de données relationnelle (MySQL, PostgreSQL, etc.).
+## 4. Exigences fonctionnelles
 
-4.2. Frontend :
-- Utilisation de Vue.js pour le développement du frontend.
-- Utilisation de bibliothèques ou frameworks CSS (Bootstrap, Tailwind CSS, etc.) pour assurer un design responsive et esthétique.
+1. L'application doit permettre à l'utilisateur d'importer un fichier Excel.
+2. Les données du fichier Excel doivent être traitées pour extraire les informations de présence.
+3. L'application doit calculer le nombre de jours travaillés sur site pour chaque employé.
+4. L'application doit générer des statistiques sur la présence sur site pour chaque employé et chaque squad.
+5. L'interface utilisateur doit être intuitive et conviviale pour faciliter l'utilisation de l'application.
 
-4.3. Sécurité :
-- Mise en place d'un système d'authentification et d'autorisation pour garantir la confidentialité des données.
-- Les mots de passe doivent être stockés de manière sécurisée (hachage avec sel).
+## 5. Exigences techniques
 
-**5. Livrables attendus**
+1. Utilisation de Java Spring Boot pour le développement du backend.
+2. Utilisation de Vue.js pour le développement du frontend.
+3. Utilisation de bibliothèques ou de frameworks Java et JavaScript appropriés pour le traitement des fichiers Excel et l'interaction avec l'interface utilisateur.
+4. Déploiement de l'application sur une plateforme de cloud computing (AWS, Azure, etc.) ou en local selon les besoins de l'organisme.
 
-5.1. Code source de l'application :
-- Le code source du backend développé avec Java Spring Boot.
-- Le code source du frontend développé avec Vue.js.
-- Scripts SQL pour la création de la base de données et l'initialisation des tables.
+## 6. Livrables
 
-5.2. Documentation technique :
-- Documentation détaillée sur l'architecture de l'application.
-- Guide d'installation et de déploiement.
+1. Code source complet de l'application.
+2. Documentation technique décrivant l'architecture, les technologies utilisées et les instructions d'installation et de déploiement.
+3. Manuel utilisateur décrivant comment utiliser l'application, importer un fichier Excel, et interpréter les données et statistiques générées.
 
-5.3. Manuel utilisateur :
-- Guide utilisateur expliquant les différentes fonctionnalités de l'application.
-- Instructions pour l'importation des données depuis un fichier Excel.
+## 7. Planning prévisionnel
 
-**6. Échéancier**
+1. **Phase de conception** (1 semaine)
+   - Analyse des besoins et des spécifications.
+   - Conception de l'architecture de l'application.
 
-Le projet sera développé selon le calendrier suivant :
+2. **Phase de développement** (6 semaines)
+   - Développement du backend en Java Spring Boot.
+   - Développement du frontend en Vue.js.
+   - Intégration des fonctionnalités et des interfaces utilisateur.
 
-- Conception et spécifications : [Dates]
-- Développement du backend : [Dates]
-- Développement du frontend : [Dates]
-- Intégration et tests : [Dates]
-- Correction des bugs et améliorations : [Dates]
-- Livraison finale : [Date]
+3. **Phase de test et de validation** (2 semaines)
+   - Tests unitaires et tests d'intégration.
+   - Validation des fonctionnalités par l'équipe projet.
 
-**7. Validation et suivi**
+4. **Phase de documentation et de livraison** (1 semaine)
+   - Rédaction de la documentation technique et du manuel utilisateur.
+   - Préparation des livrables finaux.
 
-Des réunions régulières seront organisées pour suivre l'avancement du projet et valider chaque étape avec l'encadrant. Des démonstrations seront également prévues pour présenter les fonctionnalités développées.
+## 8. Équipe projet
 
-**8. Références**
+- Chef de projet
+- Développeurs backend (Java Spring Boot)
+- Développeurs frontend (Vue.js)
+- Testeurs
 
-Toute référence utilisée dans le cadre du développement de l'application sera correctement documentée dans la documentation technique.
+## 9. Budget
+
+Le budget alloué pour ce projet sera déterminé en fonction des ressources humaines nécessaires et des coûts liés à l'infrastructure et aux outils de développement.
+
+## 10. Contraintes
+
+- Respect des délais de livraison.
+- Utilisation des technologies spécifiées (Java Spring Boot pour le backend, Vue.js pour le frontend).
+- Conformité aux normes de sécurité et de confidentialité des données.
+
+Ce cahier des charges est soumis à validation par l'équipe projet et peut être sujet à des modifications en fonction des retours et des ajustements nécessaires au cours du développement de l'application.
