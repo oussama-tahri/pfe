@@ -1,4 +1,4 @@
-# pfe
+# PFE
 
 **Cahier des charges pour l'application de gestion d'absences d'un organisme**
 
