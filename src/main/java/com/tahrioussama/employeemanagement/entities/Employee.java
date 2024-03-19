@@ -12,8 +12,17 @@ public class Employee {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String firstName;
-    private String lastName;
-    private String employeeId;
-    private String workType; // Site or Hybrid
+    private String resourceName;
+    private String site;
+    private String tribe;
+    private String squad;
+    private String commentaire;
+
+    public Employee(String resourceName, String site, String tribe, String squad, String commentaire) {
+        this.resourceName = resourceName;
+        this.site = site;
+        this.tribe = tribe;
+        this.squad = squad;
+        this.commentaire = commentaire;
+    }
 }

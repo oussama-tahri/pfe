@@ -1,10 +1,8 @@
 package com.tahrioussama.employeemanagement.services;
 
-import com.tahrioussama.employeemanagement.entities.Absence;
-import com.tahrioussama.employeemanagement.entities.Calendar;
 import com.tahrioussama.employeemanagement.entities.Employee;
-import com.tahrioussama.employeemanagement.repositories.AbsenceRepository;
-import com.tahrioussama.employeemanagement.repositories.CalendarRepository;
+import com.tahrioussama.employeemanagement.entities.Presence;
+import com.tahrioussama.employeemanagement.repositories.PresenceRepository;
 import com.tahrioussama.employeemanagement.repositories.EmployeeRepository;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -12,9 +10,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.time.DayOfWeek;
+import java.time.LocalDate;
+import java.time.Month;
 import java.util.Iterator;
 
 @Service
@@ -24,114 +22,76 @@ public class ExcelImportService {
     private EmployeeRepository employeeRepository;
 
     @Autowired
-    private AbsenceRepository absenceRepository;
-
-    @Autowired
-    private CalendarRepository calendarRepository;
+    private PresenceRepository presenceRepository;
 
     public void importDataFromExcel(MultipartFile file) throws IOException {
         try (Workbook workbook = new XSSFWorkbook(file.getInputStream())) {
             Sheet sheet = workbook.getSheetAt(0); // Assuming data is in the first sheet
 
-
             // Iterate through each row in the sheet
             Iterator<Row> rowIterator = sheet.iterator();
+            int rowCount = 0;
             while (rowIterator.hasNext()) {
                 Row row = rowIterator.next();
+                rowCount++;
 
-                // Skip header row
-                if (row.getRowNum() == 0) continue;
+                // Skip first 4 rows
+                if (rowCount <= 4) continue;
 
                 // Process data from each row
-                processRowData(row);
+                processRowData(row, sheet);
             }
         }
     }
 
-    private void processRowData(Row row) {
+    private void processRowData(Row row, Sheet sheet) {
         DataFormatter formatter = new DataFormatter();
 
         // Assuming the structure of your Excel file, map data to entities
-        String firstName = formatter.formatCellValue(row.getCell(0));
-        String lastName = formatter.formatCellValue(row.getCell(1));
-        String employeeId = formatter.formatCellValue(row.getCell(2));
-        String workType = formatter.formatCellValue(row.getCell(3));
-        // You can add more fields as needed
+        String resourceName = formatter.formatCellValue(row.getCell(0));
+        String site = formatter.formatCellValue(row.getCell(1));
+        String tribe = formatter.formatCellValue(row.getCell(2));
+        String squad = formatter.formatCellValue(row.getCell(3));
+        String commentaire = formatter.formatCellValue(row.getCell(4));
 
         // Create and save Employee entity
         Employee employee = new Employee();
-        employee.setFirstName(firstName);
-        employee.setLastName(lastName);
-        employee.setEmployeeId(employeeId);
-        employee.setWorkType(workType);
-        employeeRepository.save(employee);
+        employee.setResourceName(resourceName);
+        employee.setSite(site);
+        employee.setTribe(tribe);
+        employee.setSquad(squad);
+        employee.setCommentaire(commentaire);
+        employee = employeeRepository.save(employee); // Save and retrieve generated ID
 
-        // Create and save Absence entity if applicable
-        // Assuming absences are in the same row or in a separate sheet
-        // Extract absence data from the row and save it similarly
-        // For example:
-        Cell absenceCell = row.getCell(4); // Assuming absence information is in the 5th column
-        if (absenceCell != null) {
-            String absenceInfo = formatter.formatCellValue(absenceCell);
-            if (!absenceInfo.isEmpty()) {
-                String[] absenceDetails = absenceInfo.split(";"); // Assuming absence details are separated by semicolon
-                for (String detail : absenceDetails) {
-                    String[] absenceData = detail.split(":"); // Assuming absence data is in the format "date:reason"
-                    if (absenceData.length == 2) {
-                        String dateString = absenceData[0];
-                        String reason = absenceData[1];
-                        // Parse date string to Date object
-                        // Implement the logic to parse date string to a Date object based on your date format
-                        // For example:
-                        Date date = parseDateString(dateString);
-                        // Create and save Absence entity
-                        Absence absence = new Absence();
-                        absence.setDate(date);
-                        absence.setAbsenceType(reason);
-                        absence.setEmployee(employee);
-                        absenceRepository.save(absence);
-                    }
-                }
+        // process the presence data
+        // Now, process the presence data starting from the 5th row
+        int rowIndex = 4; // 0-based index
+        Row presenceRow = sheet.getRow(rowIndex); // Assuming the presence data is in the 5th row
+
+        // Assuming attendance starts after the commentaire column
+        int columnIndex = 5; // Assuming attendance starts after the 5th column
+
+        LocalDate startDate = LocalDate.of(2024, Month.MARCH, 1);
+        LocalDate endDate = LocalDate.of(2024, Month.MARCH, 29);
+
+        while (startDate.isBefore(endDate) || startDate.isEqual(endDate)) {
+            if (startDate.getDayOfWeek() != DayOfWeek.SATURDAY && startDate.getDayOfWeek() != DayOfWeek.SUNDAY) {
+                Cell cell = presenceRow.getCell(columnIndex);
+
+                // Assuming '1' means present and '0' means absent
+                String cellValue = formatter.formatCellValue(cell);
+                boolean isPresent = "1".equals(cellValue.trim());
+
+                // Create and save Presence entity
+                Presence presence = new Presence();
+                presence.setEmployee(employee);
+                presence.setDate(startDate);
+                presence.setPresentOnSite(isPresent);
+                presenceRepository.save(presence);
+
+                columnIndex++;
             }
-        }
-
-        // Create and save Calendar entity for the employee if not already exists
-        Cell weekStartDateCell = row.getCell(5);
-        Cell weekEndDateCell = row.getCell(6);
-        Cell baseHoursCell = row.getCell(7);
-
-        if (weekStartDateCell != null && weekEndDateCell != null && baseHoursCell != null) {
-            String weekStartDateString = formatter.formatCellValue(weekStartDateCell);
-            String weekEndDateString = formatter.formatCellValue(weekEndDateCell);
-            // Assuming base hours are provided for each employee
-            int baseHours = (int) baseHoursCell.getNumericCellValue(); // Assuming base hours is in 8th column
-            // Parse date strings to Date objects
-            Date weekStartDate = parseDateString(weekStartDateString);
-            Date weekEndDate = parseDateString(weekEndDateString);
-            // Check if calendar for this week already exists
-            Calendar existingCalendar = calendarRepository.findByWeekStartDateAndWeekEndDate(weekStartDate, weekEndDate);
-            if (existingCalendar == null) {
-                // Create and save Calendar entity
-                Calendar calendar = new Calendar();
-                calendar.setWeekStartDate(weekStartDate);
-                calendar.setWeekEndDate(weekEndDate);
-                calendar.setBaseHours(baseHours);
-                calendarRepository.save(calendar);
-            }
-        }
-    }
-
-
-    private Date parseDateString(String dateString) {
-        // Format de date utilisé dans le fichier Excel
-        SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy"); // Adapté au format de votre fichier Excel
-        try {
-            // Convertir la chaîne de date en objet Date
-            return dateFormat.parse(dateString);
-        } catch (ParseException e) {
-            // Gérer l'exception si la conversion échoue
-            e.printStackTrace();
-            return null;
+            startDate = startDate.plusDays(1);
         }
     }
 }
