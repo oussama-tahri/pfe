@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDate;
-import java.util.Date;
 
 @Entity
 @Getter @Setter @ToString @NoArgsConstructor @AllArgsConstructor @Builder
@@ -12,11 +11,12 @@ import java.util.Date;
         @Id
         @GeneratedValue(strategy = GenerationType.AUTO)
         private Long id;
-
-        @ManyToOne
-        @JoinColumn(name = "employee_id", nullable = false)
-        private Employee employee;
-
         private LocalDate date;
-        private Boolean presentOnSite;
+        @Column(columnDefinition="TEXT")
+        private String present;
+
+        // Relation avec l'employé
+        @ManyToOne
+        private Employee employee;
+        private String employeeName;
 }
