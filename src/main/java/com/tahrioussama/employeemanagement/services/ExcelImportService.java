@@ -77,7 +77,7 @@ public class ExcelImportService {
 
         // Create and save Employee entity
         Employee employee = new Employee();
-        employee.setResourceName(resourceName);
+        employee.setResourceName(resourceName.toLowerCase());
         employee.setSite(site);
         employee.setTribe(tribe);
         employee.setSquad(squad);
@@ -98,11 +98,13 @@ public class ExcelImportService {
         }
 
         // Extract presence data horizontally and map it to dates
-        List<String> presenceList = new ArrayList<>();
+        List<Boolean> presenceList = new ArrayList<>();
         for (int i = 5; i < row.getLastCellNum(); i++) {
             String presenceValue = formatter.formatCellValue(row.getCell(i));
             if (!presenceValue.isEmpty()) {
-                presenceList.add(presenceValue);
+                // Parse presence value as boolean
+                boolean presenceBoolean = presenceValue.equals("1");
+                presenceList.add(presenceBoolean);
             }
         }
 
@@ -114,12 +116,12 @@ public class ExcelImportService {
         // Create and save Presence entities with dates mapped to presence values
         for (int i = 0; i < dates.size(); i++) {
             LocalDate date = dates.get(i);
-            String presenceValue = i < presenceList.size() ? presenceList.get(i) : "0"; // Default to "0" if no presence value is provided
+            boolean presenceValue = i < presenceList.size() ? presenceList.get(i) : false; // Default to false if no presence value is provided
             Presence presence = new Presence();
             presence.setEmployee(employee);
             presence.setEmployeeName(resourceName);
             presence.setDate(date);
-            presence.setPresent(presenceValue);
+            presence.setPresent(presenceValue); // Set the present attribute directly with the boolean value
             presenceRepository.save(presence);
         }
     }

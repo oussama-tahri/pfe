@@ -15,6 +15,12 @@ public class ExcelImportController {
     @Autowired
     private ExcelImportService excelImportService;
 
+
+    // POST http://localhost:8080/api/import/excel
+    // -> Body
+    // -> form-data
+    // -> Key : file of Type File ->
+    // Value : choisissez un fichier Excel dans votre système de fichiers
     @PostMapping("/excel")
     public ResponseEntity<String> importExcelFile(@RequestParam("file") MultipartFile file) {
         try {
@@ -29,10 +35,7 @@ public class ExcelImportController {
 }
 
 
-//            1. Lancez Postman.
-//            2. Assurez-vous que votre application Spring Boot est en cours d'exécution localement à l'URL `http://localhost:8080` (si elle utilise le port par défaut).
-//            3. Dans Postman, sélectionnez la méthode POST.
-//            4. Entrez l'URL de votre endpoint : `http://localhost:8080/import`.
+
 //            5. Sélectionnez l'onglet "Body".
 //            6. Choisissez l'option "form-data".
 //            7. Ajoutez une clé avec le nom `file`.

@@ -13,7 +13,7 @@ import java.time.LocalDate;
         private Long id;
         private LocalDate date;
         @Column(columnDefinition="TEXT")
-        private String present;
+        private boolean present;
 
         // Relation avec l'employé
         @ManyToOne
