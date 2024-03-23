@@ -7,7 +7,6 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDate;
-import java.util.Collection;
 import java.util.List;
 
 public interface PresenceRepository extends JpaRepository<Presence,Long> {
@@ -25,4 +24,6 @@ public interface PresenceRepository extends JpaRepository<Presence,Long> {
     long countDistinctEmployeesBySquadAndMonthStartDate(@Param("squadName") String squadName, @Param("monthStartDate") LocalDate monthStartDate);
 
     boolean existsByEmployeeAndDateAndPresent(Employee employee, LocalDate date, boolean present);
+
+    List<Presence> findByEmployeeAndDate(Employee employee, LocalDate date);
 }

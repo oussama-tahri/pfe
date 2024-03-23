@@ -33,11 +33,3 @@ public class ExcelImportController {
         }
     }
 }
-
-
-
-//            5. Sélectionnez l'onglet "Body".
-//            6. Choisissez l'option "form-data".
-//            7. Ajoutez une clé avec le nom `file`.
-//            8. Cliquez sur "Select Files" à côté de la clé `file` et choisissez un fichier Excel dans votre système de fichiers.
-//            9. Cliquez sur "Send" pour envoyer la requête.

@@ -4,6 +4,7 @@ import com.tahrioussama.employeemanagement.entities.Employee;
 import com.tahrioussama.employeemanagement.entities.Presence;
 import com.tahrioussama.employeemanagement.repositories.EmployeeRepository;
 import com.tahrioussama.employeemanagement.repositories.PresenceRepository;
+import lombok.AllArgsConstructor;
 import org.apache.poi.ss.usermodel.DataFormatter;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -22,12 +23,10 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@AllArgsConstructor
 public class ExcelImportService {
 
-    @Autowired
     private EmployeeRepository employeeRepository;
-
-    @Autowired
     private PresenceRepository presenceRepository;
 
     public void importDataFromExcel(MultipartFile file) throws IOException {

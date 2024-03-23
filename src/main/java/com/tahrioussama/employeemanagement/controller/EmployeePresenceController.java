@@ -15,14 +15,14 @@ public class EmployeePresenceController {
     @Autowired
     private EmployeePresenceService presenceService;
 
-    @PutMapping("/{presenceId}")
+    @PutMapping("/{employeeId}")
     public ResponseEntity<String> updatePresenceValue(
-            @PathVariable Long presenceId,
+            @PathVariable Long employeeId,
             @RequestParam LocalDate date,
             @RequestParam boolean newValue
     ) {
         try {
-            presenceService.updatePresenceValueForDate(presenceId, date, newValue);
+            presenceService.updatePresenceValueForDate(employeeId, date, newValue);
             return ResponseEntity.ok("Presence value updated successfully");
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());

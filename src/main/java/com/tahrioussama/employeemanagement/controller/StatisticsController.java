@@ -42,7 +42,7 @@ public class StatisticsController {
         }
     }
 
-    // GET http://localhost:8080/api/squad-statistics/presence-per-week/CBE3/2024-03-01
+    // GET http://localhost:8080/api/presence-per-week/CBE3/2024-03-01
     @GetMapping("/presence-per-week/{squadName}/{weekStartDate}")
     public ResponseEntity<Double> getSquadPresencePercentagePerWeek(
             @PathVariable String squadName,
@@ -52,7 +52,7 @@ public class StatisticsController {
         return new ResponseEntity<>(percentage, HttpStatus.OK);
     }
 
-    // GET http://localhost:8080/api/squad-statistics/presence-per-month/CBE3/2024-03-01
+    // GET http://localhost:8080/api/statistics/presence-per-month/CBE3/2024-03-01
     @GetMapping("/presence-per-month/{squadName}/{monthStartDate}")
     public ResponseEntity<Double> getSquadPresencePercentagePerMonth(
             @PathVariable String squadName,
@@ -62,6 +62,7 @@ public class StatisticsController {
         return new ResponseEntity<>(percentage, HttpStatus.OK);
     }
 
+    // GET http://localhost:8080/api/statistics/presence-status
     @GetMapping("/presence-status")
     public String getEmployeePresenceStatus(@RequestParam String employeeName) {
         return statisticsService.calculateEmployeePresenceStatus(employeeName);

@@ -165,11 +165,8 @@ public class StatisticsServiceImpl implements StatisticsService {
 
     @Override
     public String calculateEmployeePresenceStatus(String employeeName) {
-        // Normalize input name to lowercase
-        String normalizedEmployeeName = employeeName.toLowerCase();
-
         // Find the employee by name
-        Optional<Employee> optionalEmployee = employeeRepository.findByResourceName(normalizedEmployeeName);
+        Optional<Employee> optionalEmployee = employeeRepository.findByResourceName(employeeName);
         if (optionalEmployee.isEmpty()) {
             return "Employee with name " + employeeName + " not found.";
         }
