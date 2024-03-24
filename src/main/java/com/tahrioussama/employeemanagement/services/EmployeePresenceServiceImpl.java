@@ -26,8 +26,6 @@ public class EmployeePresenceServiceImpl implements EmployeePresenceService {
     private PresenceRepository presenceRepository;
     private EmployeeRepository employeeRepository;
     private EmployeePresenceStatisticsRepository employeePresenceStatisticsRepository;
-    private StatisticsService statisticsService;
-
     private static final Logger LOGGER = LoggerFactory.getLogger(EmployeePresenceServiceImpl.class);
     @Override
     public void updatePresenceValueForDate(Long employeeId, LocalDate providedDate, boolean newValue) {

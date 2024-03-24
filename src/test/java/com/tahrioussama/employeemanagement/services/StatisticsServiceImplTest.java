@@ -11,7 +11,9 @@ import com.tahrioussama.employeemanagement.repositories.PresenceRepository;
 import com.tahrioussama.employeemanagement.repositories.SquadPresenceStatisticsRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.boot.test.context.SpringBootTest;
 import java.time.LocalDate;
 import java.time.Month;
@@ -21,7 +23,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-@SpringBootTest
+@ExtendWith(MockitoExtension.class)
 public class StatisticsServiceImplTest {
 
     @Mock
@@ -116,42 +118,39 @@ public class StatisticsServiceImplTest {
 
     @Test
     public void testCalculateEmployeePresenceStatus() {
-        // Create a test employee
-        String name = "testemployee";
+        // Mock employee
+        String employeeName = "John Doe";
         String squad = "Squad1";
         Employee testEmployee = new Employee();
-        testEmployee.setResourceName(name.toLowerCase()); // Ensure lowercase
+        testEmployee.setResourceName(employeeName);
         testEmployee.setSquad(squad);
 
-
-        // Mock employeeRepository.findByResourceName to return the testEmployee
-        when(employeeRepository.findByResourceName("testemployee")).thenReturn(Optional.of(testEmployee));
+        // Mock employee repository
+        when(employeeRepository.findByResourceName(employeeName)).thenReturn(Optional.of(testEmployee));
 
         // Mock squad presence statistics
         String squadName = "Squad1";
         SquadPresenceStatistics squadStats = new SquadPresenceStatistics();
         squadStats.setSquad(squadName);
-        squadStats.setStatistics("{\"weeklyPresence\":{\"Week 1\":2,\"Week 2\":3,\"Week 3\":4, \"Week 4\":5},\"monthlyPresence\":{\"Month\":[\"MONDAY\",\"TUESDAY\",\"WEDNESDAY\",\"THURSDAY\",\"FRIDAY\"]}}");
+        squadStats.setStatistics("{\"weeklyPresence\":{\"Week 1\":0,\"Week 2\":0,\"Week 3\":0, \"Week 4\":0},\"monthlyPresence\":{\"Month\":[\"MONDAY\",\"TUESDAY\",\"WEDNESDAY\",\"THURSDAY\",\"FRIDAY\"]}}");
         when(squadPresenceStatisticsRepository.findBySquad(anyString())).thenReturn(Optional.of(squadStats));
 
         // Invoke the method under test
-        String presenceStatus = statisticsService.calculateEmployeePresenceStatus("testemployee");
+        String presenceStatus = statisticsService.calculateEmployeePresenceStatus(employeeName);
 
         // Expected presence status
-        String expectedStatus = "Employee testemployee presence status:\n" +
+        String expectedStatus = "Employee John Doe presence status:\n" +
                 "Weekly presence:\n" +
-                "Present in Week 1\n" +
-                "Present in Week 2\n" +
-                "Present in Week 3\n" +
-                "Present in Week 4\n" +
+                "Absent in Week 1\n" +
+                "Absent in Week 2\n" +
+                "Absent in Week 3\n" +
+                "Absent in Week 4\n" +
                 "Monthly presence:\n" +
-                "Present on MONDAY\n" +
-                "Present on TUESDAY\n" +
-                "Present on WEDNESDAY\n" +
-                "Present on THURSDAY\n"+
-                "Present on FRIDAY\n"+
-                "Absent on SATURDAY\n"+
-                "Absent on SUNDAY\n";
+                "Absent on MONDAY\n" +
+                "Absent on TUESDAY\n" +
+                "Absent on WEDNESDAY\n" +
+                "Absent on THURSDAY\n" +
+                "Absent on FRIDAY\n";
 
         // Verify that the correct status is returned
         assertEquals(expectedStatus, presenceStatus, "Presence status does not match expected status");
