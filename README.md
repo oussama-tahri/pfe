@@ -97,30 +97,6 @@ Ce cahier des charges est soumis à validation par l'équipe projet et peut êtr
 
 
 
-// Process the presence data
-int commentColumnIndex = 4;
-int presenceStartIndex = commentColumnIndex + 1; // Presence starts after the comment column
-
-        // Call the method to process presence data
-        processPresenceData(row, employee, formatter);
-    }
-
-    private void processPresenceData(Row row, Employee employee, DataFormatter formatter) {
-        int startColumnIndex = 5; // Assuming presence data starts from the 5th column
-        int startRowIndex = 21; // Skip the first 21 rows
-
-        // Loop through presence data columns
-        for (int columnIndex = startColumnIndex; columnIndex < row.getLastCellNum(); columnIndex++) {
-            Cell cell = row.getCell(columnIndex);
-            String presenceValue = "0"; // Default to absent if cell is null or blank
-            if (cell != null && cell.getCellType() != CellType.BLANK) {
-                presenceValue = formatter.formatCellValue(cell);
-            }
-
-            // Create and save Presence entity
-            Presence presence = new Presence();
-            presence.setEmployee(employee);
-            // Here, you may choose to set a placeholder date or omit setting the date entirely
             presence.setDate(LocalDate.now()); // Set a placeholder date
             presence.setPresentOnSite(presenceValue);
             presenceRepository.save(presence);
