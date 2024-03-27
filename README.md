@@ -94,11 +94,3 @@ Le budget alloué pour ce projet sera déterminé en fonction des ressources hum
 - Conformité aux normes de sécurité et de confidentialité des données.
 
 Ce cahier des charges est soumis à validation par l'équipe projet et peut être sujet à des modifications en fonction des retours et des ajustements nécessaires au cours du développement de l'application.
-
-
-
-            presence.setDate(LocalDate.now()); // Set a placeholder date
-            presence.setPresentOnSite(presenceValue);
-            presenceRepository.save(presence);
-        }
-    }
