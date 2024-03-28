@@ -82,6 +82,20 @@ const apiService = {
     return ApiService.get(`/api/statistics/presence-status?employeeName=${employeeName}`)
       .then(response => response.data)
       .catch(handleError);
+  },
+
+  // Function to get all employees
+  getAllEmployees: () => {
+    return ApiService.get('/api/statistics/getEmployees')
+      .then(response => response.data)
+      .catch(handleError);
+  },
+
+  // Function to get all presence data
+  getPresence: () => {
+    return ApiService.get('/api/statistics/getPresence')
+      .then(response => response.data)
+      .catch(handleError);
   }
 };
 
