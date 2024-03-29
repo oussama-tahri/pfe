@@ -36,19 +36,16 @@ public class EmployeePresenceServiceImplTest {
     @Mock
     private EmployeePresenceStatisticsRepository employeePresenceStatisticsRepository;
 
-    @Mock
-    private ObjectMapper objectMapper;
-
     @InjectMocks
     private EmployeePresenceServiceImpl presenceService;
 
     @Test
-    public void testUpdatePresenceValueForDate() throws JsonProcessingException {
+    public void testUpdatePresenceValueForDate() {
         // Mock data
-        Employee employee = new Employee(1L, "John Doe", "Site", "Tribe", "Squad", "Commentaire");
+        Employee employee = new Employee(1L, "Oussama Tahri", "Site", "Tribe", "Squad", "Commentaire");
         LocalDate providedDate = LocalDate.of(2024, Month.MARCH, 15);
-        Presence presence1 = new Presence(1L, providedDate, true, employee, "John Doe");
-        Presence presence2 = new Presence(2L, providedDate, true, employee, "John Doe");
+        Presence presence1 = new Presence(1L, providedDate, true, employee, "Oussama Tahri");
+        Presence presence2 = new Presence(2L, providedDate, true, employee, "Oussama Tahri");
 
         // Mock repository behavior
         when(employeeRepository.findById(1L)).thenReturn(Optional.of(employee));

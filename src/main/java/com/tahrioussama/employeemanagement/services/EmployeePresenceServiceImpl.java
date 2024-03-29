@@ -8,6 +8,7 @@ import com.tahrioussama.employeemanagement.repositories.EmployeePresenceStatisti
 import com.tahrioussama.employeemanagement.repositories.EmployeeRepository;
 import com.tahrioussama.employeemanagement.repositories.PresenceRepository;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +28,7 @@ public class EmployeePresenceServiceImpl implements EmployeePresenceService {
     private EmployeeRepository employeeRepository;
     private EmployeePresenceStatisticsRepository employeePresenceStatisticsRepository;
     private static final Logger LOGGER = LoggerFactory.getLogger(EmployeePresenceServiceImpl.class);
+
     @Override
     public void updatePresenceValueForDate(Long employeeId, LocalDate providedDate, boolean newValue) {
         // Find the employee by ID

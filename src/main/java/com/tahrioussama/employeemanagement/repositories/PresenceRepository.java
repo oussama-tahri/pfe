@@ -11,6 +11,7 @@ import java.util.List;
 
 public interface PresenceRepository extends JpaRepository<Presence,Long> {
     List<Presence> findByEmployee(Employee employee);
+
     // Define a method to count presence records for a specific employee within a date range
     long countByEmployeeAndDateBetweenAndPresent(Employee employee, LocalDate startDate, LocalDate endDate, boolean present);
 

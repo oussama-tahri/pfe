@@ -10,6 +10,7 @@ import com.tahrioussama.employeemanagement.repositories.EmployeePresenceStatisti
 import com.tahrioussama.employeemanagement.repositories.EmployeeRepository;
 import com.tahrioussama.employeemanagement.repositories.PresenceRepository;
 import com.tahrioussama.employeemanagement.repositories.SquadPresenceStatisticsRepository;
+import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -23,19 +24,26 @@ import static com.tahrioussama.employeemanagement.config.JsonUtils.jsonStringToM
 import static com.tahrioussama.employeemanagement.config.JsonUtils.objectMapper;
 
 @Service
+@AllArgsConstructor
 public class StatisticsServiceImpl implements StatisticsService {
 
-    @Autowired
     private PresenceRepository presenceRepository;
 
-    @Autowired
     private EmployeeRepository employeeRepository;
 
-    @Autowired
     private EmployeePresenceStatisticsRepository employeePresenceStatisticsRepository;
 
-    @Autowired
     private SquadPresenceStatisticsRepository squadPresenceStatisticsRepository;
+
+    @Override
+    public List<Employee> getAllEmployees() {
+        return employeeRepository.findAll();
+    }
+
+    @Override
+    public List<Presence> getPresence() {
+        return presenceRepository.findAll();
+    }
 
     @Override
     public void calculateAndSaveEmployeePresenceStatistics() {

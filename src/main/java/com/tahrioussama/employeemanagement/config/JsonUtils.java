@@ -12,7 +12,8 @@ public class JsonUtils {
 
     public static Map<String, Object> jsonStringToMap(String jsonString) {
         try {
-            return objectMapper.readValue(jsonString, new TypeReference<Map<String, Object>>() {});
+            return objectMapper.readValue(jsonString, new TypeReference<>() {
+            });
         } catch (IOException e) {
             e.printStackTrace();
             return null;

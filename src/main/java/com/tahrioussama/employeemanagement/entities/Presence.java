@@ -7,16 +7,16 @@ import java.time.LocalDate;
 
 @Entity
 @Getter @Setter @ToString @NoArgsConstructor @AllArgsConstructor @Builder
-    public class Presence {
-        @Id
-        @GeneratedValue(strategy = GenerationType.AUTO)
-        private Long id;
-        private LocalDate date;
-        @Column(columnDefinition="TEXT")
-        private boolean present;
+public class Presence {
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private Long id;
+    private LocalDate date;
+    @Column(columnDefinition="TEXT")
+    private boolean present;
 
-        // Relation avec l'employé
-        @ManyToOne
-        private Employee employee;
-        private String employeeName;
+    // Relation avec l'employé
+    @ManyToOne
+    private Employee employee;
+    private String employeeName;
 }

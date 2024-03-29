@@ -37,13 +37,10 @@ public class ExcelImportServiceTest {
         // Load the file as a MultipartFile
         MultipartFile multipartFile = createMultipartFile(filePath);
 
-        // Call the method under test and assert the behavior
         try {
             excelImportService.importDataFromExcel(multipartFile);
-            // Add assertions or further processing as needed
         } catch (IOException e) {
             e.printStackTrace();
-            // Handle the exception
         }
     }
 

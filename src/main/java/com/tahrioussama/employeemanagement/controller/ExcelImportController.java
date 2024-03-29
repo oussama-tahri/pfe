@@ -1,6 +1,7 @@
 package com.tahrioussama.employeemanagement.controller;
 
 import com.tahrioussama.employeemanagement.services.ExcelImportService;
+import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -10,17 +11,18 @@ import java.io.IOException;
 
 @RestController
 @RequestMapping("/api/import")
+@CrossOrigin("*")
+@AllArgsConstructor
 public class ExcelImportController {
 
-    @Autowired
     private ExcelImportService excelImportService;
 
 
     // POST http://localhost:8080/api/import/excel
     // -> Body
     // -> form-data
-    // -> Key : file of Type File ->
-    // Value : choisissez un fichier Excel dans votre système de fichiers
+    // -> Key : file of Type File
+    // -> Value : choisissez un fichier Excel dans votre système de fichiers
     @PostMapping("/excel")
     public ResponseEntity<String> importExcelFile(@RequestParam("file") MultipartFile file) {
         try {

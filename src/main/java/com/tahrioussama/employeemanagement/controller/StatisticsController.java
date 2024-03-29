@@ -1,6 +1,11 @@
 package com.tahrioussama.employeemanagement.controller;
 
+import com.tahrioussama.employeemanagement.entities.Employee;
+import com.tahrioussama.employeemanagement.entities.Presence;
+import com.tahrioussama.employeemanagement.repositories.EmployeeRepository;
+import com.tahrioussama.employeemanagement.repositories.PresenceRepository;
 import com.tahrioussama.employeemanagement.services.StatisticsService;
+import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
@@ -8,13 +13,30 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/statistics")
+@AllArgsConstructor
+@CrossOrigin("*")
 public class StatisticsController {
 
-    @Autowired
     private StatisticsService statisticsService;
+
+
+    // GET http://localhost:8080/api/statistics/getEmployees
+    @GetMapping("/getEmployees")
+    public List<Employee> getAllEmployees() {
+        return statisticsService.getAllEmployees();
+    }
+
+
+    // GET http://localhost:8080/api/statistics/getPresence
+    @GetMapping("/getPresence")
+    public List<Presence> getPresence() {
+        return statisticsService.getPresence();
+    }
+
 
     // POST http://localhost:8080/api/statistics/employees
     @PostMapping("/employees")
@@ -42,7 +64,7 @@ public class StatisticsController {
         }
     }
 
-    // GET http://localhost:8080/api/presence-per-week/CBE3/2024-03-01
+    // GET http://localhost:8080/api/statistics/presence-per-week/CBE3/2024-03-01
     @GetMapping("/presence-per-week/{squadName}/{weekStartDate}")
     public ResponseEntity<Double> getSquadPresencePercentagePerWeek(
             @PathVariable String squadName,

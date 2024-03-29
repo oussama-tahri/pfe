@@ -50,7 +50,7 @@ public class StatisticsServiceImplTest {
         // Mock employee data
         Employee employee1 = new Employee("John", "Site1", "Tribe1", "Squad1", "Comment1");
         Employee employee2 = new Employee("Alice", "Site2", "Tribe2", "Squad2", "Comment2");
-        when(employeeRepository.findAll()).thenReturn(List.of(employee1, employee2));
+        lenient().when(employeeRepository.findAll()).thenReturn(List.of(employee1, employee2));
 
         // Mock presence data
         Presence presence1 = new Presence(1L, LocalDate.of(2024, Month.MARCH, 1), true, employee1, "John");
@@ -58,7 +58,7 @@ public class StatisticsServiceImplTest {
         Presence presence3 = new Presence(3L, LocalDate.of(2024, Month.MARCH, 3), true, employee1, "John");
         Presence presence4 = new Presence(4L, LocalDate.of(2024, Month.MARCH, 4), true, employee1, "John");
         Presence presence5 = new Presence(5L, LocalDate.of(2024, Month.MARCH, 5), true, employee1, "John");
-        when(presenceRepository.findByEmployee(employee1)).thenReturn(List.of(presence1, presence2, presence3, presence4, presence5));
+        lenient().when(presenceRepository.findByEmployee(employee1)).thenReturn(List.of(presence1, presence2, presence3, presence4, presence5));
 
         // Call the method under test
         statisticsService.calculateAndSaveEmployeePresenceStatistics();
@@ -154,17 +154,5 @@ public class StatisticsServiceImplTest {
 
         // Verify that the correct status is returned
         assertEquals(expectedStatus, presenceStatus, "Presence status does not match expected status");
-    }
-
-
-
-    // Helper method to convert map to JSON string
-    private String mapToJsonString(Map<String, Object> map) {
-        try {
-            return new ObjectMapper().writeValueAsString(map);
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-            return null;
-        }
     }
 }
