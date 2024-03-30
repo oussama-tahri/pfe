@@ -4,14 +4,14 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.tahrioussama.employeemanagement.entities.Employee;
 import com.tahrioussama.employeemanagement.entities.EmployeePresenceStatistics;
 import com.tahrioussama.employeemanagement.entities.Presence;
+import com.tahrioussama.employeemanagement.enums.PresenceStatus;
+import com.tahrioussama.employeemanagement.exceptions.EmployeeNotFoundException;
 import com.tahrioussama.employeemanagement.repositories.EmployeePresenceStatisticsRepository;
 import com.tahrioussama.employeemanagement.repositories.EmployeeRepository;
 import com.tahrioussama.employeemanagement.repositories.PresenceRepository;
 import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.*;
@@ -30,7 +30,7 @@ public class EmployeePresenceServiceImpl implements EmployeePresenceService {
     private static final Logger LOGGER = LoggerFactory.getLogger(EmployeePresenceServiceImpl.class);
 
     @Override
-    public void updatePresenceValueForDate(Long employeeId, LocalDate providedDate, boolean newValue) {
+    public void updatePresenceValueForDate(Long employeeId, LocalDate providedDate, PresenceStatus newValue) throws EmployeeNotFoundException {
         // Find the employee by ID
         Optional<Employee> optionalEmployee = employeeRepository.findById(employeeId);
         if (optionalEmployee.isPresent()) {
@@ -49,9 +49,9 @@ public class EmployeePresenceServiceImpl implements EmployeePresenceService {
             // After updating presence, update the presence statistics for the employee
             updatePresenceStatisticsForEmployee(employee);
         } else {
-            // Log and throw exception if employee is not found
+            // Log and throw custom exception if employee is not found
             LOGGER.error("Employee with ID {} not found.", employeeId);
-            throw new IllegalArgumentException("Employee with ID " + employeeId + " not found.");
+            throw new EmployeeNotFoundException("Employee with ID " + employeeId + " not found.");
         }
     }
 
@@ -72,6 +72,7 @@ public class EmployeePresenceServiceImpl implements EmployeePresenceService {
         employeePresenceStatisticsRepository.save(presenceStatistics);
     }
 
+
     // Helper method to calculate employee presence statistics
     private Map<String, Object> calculateEmployeePresenceStatistics(Employee employee) {
         Map<String, Object> employeeStats = new HashMap<>();
@@ -84,7 +85,7 @@ public class EmployeePresenceServiceImpl implements EmployeePresenceService {
                     employee,
                     startDate.with(DayOfWeek.MONDAY),
                     startDate.with(DayOfWeek.FRIDAY),
-                    true
+                    PresenceStatus.PRESENT // Use PresenceStatus enum instead of boolean
             );
             weeklyPresence.put("Week " + (i + 1), count);
             startDate = startDate.plusWeeks(1);
@@ -92,7 +93,7 @@ public class EmployeePresenceServiceImpl implements EmployeePresenceService {
 
         // Calculate monthly presence
         List<String> daysOfMonth = presenceRepository.findByEmployeeAndPresent(
-                        employee, true).stream()
+                        employee, PresenceStatus.PRESENT).stream() // Use PresenceStatus enum instead of boolean
                 .map(p -> p.getDate().getDayOfWeek().toString())
                 .distinct()
                 .collect(Collectors.toList());
@@ -111,8 +112,9 @@ public class EmployeePresenceServiceImpl implements EmployeePresenceService {
             // Use ObjectMapper to convert map to JSON string
             return objectMapper.writeValueAsString(map);
         } catch (JsonProcessingException e) {
-            e.printStackTrace();
-            return null;
+            // Log and throw custom exception for JSON processing failure
+            LOGGER.error("Error processing JSON: {}", e.getMessage());
+            throw new RuntimeException("Error processing JSON");
         }
     }
 }

@@ -1,5 +1,6 @@
 package com.tahrioussama.employeemanagement.entities;
 
+import com.tahrioussama.employeemanagement.enums.PresenceStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -13,7 +14,8 @@ public class Presence {
     private Long id;
     private LocalDate date;
     @Column(columnDefinition="TEXT")
-    private boolean present;
+    @Enumerated(EnumType.STRING)
+    private PresenceStatus present;
 
     // Relation avec l'employé
     @ManyToOne

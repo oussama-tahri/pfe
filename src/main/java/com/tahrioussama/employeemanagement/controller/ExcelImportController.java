@@ -1,13 +1,12 @@
 package com.tahrioussama.employeemanagement.controller;
 
-import com.tahrioussama.employeemanagement.services.ExcelImportService;
+import com.tahrioussama.employeemanagement.exceptions.ExcelImportException;
+import com.tahrioussama.employeemanagement.services.ExcelImportServiceImpl;
 import lombok.AllArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import java.io.IOException;
 
 @RestController
 @RequestMapping("/api/import")
@@ -15,7 +14,7 @@ import java.io.IOException;
 @AllArgsConstructor
 public class ExcelImportController {
 
-    private ExcelImportService excelImportService;
+    private ExcelImportServiceImpl excelImportService;
 
 
     // POST http://localhost:8080/api/import/excel
@@ -26,12 +25,10 @@ public class ExcelImportController {
     @PostMapping("/excel")
     public ResponseEntity<String> importExcelFile(@RequestParam("file") MultipartFile file) {
         try {
-            // Appel du service pour importer les données du fichier Excel
             excelImportService.importDataFromExcel(file);
-            return ResponseEntity.status(HttpStatus.OK).body("Fichier Excel importé avec succès !");
-        } catch (IOException e) {
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erreur lors de l'importation du fichier Excel.");
+            return ResponseEntity.ok("Fichier Excel importé avec succès !");
+        } catch (ExcelImportException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
         }
     }
 }

@@ -2,7 +2,6 @@ package com.tahrioussama.employeemanagement.services;
 
 import com.tahrioussama.employeemanagement.repositories.EmployeeRepository;
 import com.tahrioussama.employeemanagement.repositories.PresenceRepository;
-import com.tahrioussama.employeemanagement.services.ExcelImportService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,11 +21,11 @@ public class ExcelImportServiceTest {
     @Autowired
     private PresenceRepository presenceRepository;
 
-    private ExcelImportService excelImportService;
+    private ExcelImportServiceImpl excelImportService;
 
     @BeforeEach
     void setUp() {
-        excelImportService = new ExcelImportService(employeeRepository,presenceRepository);
+        excelImportService = new ExcelImportServiceImpl(employeeRepository,presenceRepository);
     }
 
     @Test

@@ -1,17 +1,19 @@
 package com.tahrioussama.employeemanagement.services;
 
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.tahrioussama.employeemanagement.entities.Employee;
 import com.tahrioussama.employeemanagement.entities.EmployeePresenceStatistics;
 import com.tahrioussama.employeemanagement.entities.Presence;
 import com.tahrioussama.employeemanagement.entities.SquadPresenceStatistics;
+import com.tahrioussama.employeemanagement.enums.PresenceStatus;
+import com.tahrioussama.employeemanagement.exceptions.EmployeeNotFoundException;
+import com.tahrioussama.employeemanagement.exceptions.NoSquadAssignedException;
+import com.tahrioussama.employeemanagement.exceptions.PresenceStatisticsNotFoundException;
 import com.tahrioussama.employeemanagement.repositories.EmployeePresenceStatisticsRepository;
 import com.tahrioussama.employeemanagement.repositories.EmployeeRepository;
 import com.tahrioussama.employeemanagement.repositories.PresenceRepository;
 import com.tahrioussama.employeemanagement.repositories.SquadPresenceStatisticsRepository;
 import lombok.AllArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.DayOfWeek;
@@ -27,13 +29,10 @@ import static com.tahrioussama.employeemanagement.config.JsonUtils.objectMapper;
 @AllArgsConstructor
 public class StatisticsServiceImpl implements StatisticsService {
 
-    private PresenceRepository presenceRepository;
-
-    private EmployeeRepository employeeRepository;
-
-    private EmployeePresenceStatisticsRepository employeePresenceStatisticsRepository;
-
-    private SquadPresenceStatisticsRepository squadPresenceStatisticsRepository;
+    private final PresenceRepository presenceRepository;
+    private final EmployeeRepository employeeRepository;
+    private final EmployeePresenceStatisticsRepository employeePresenceStatisticsRepository;
+    private final SquadPresenceStatisticsRepository squadPresenceStatisticsRepository;
 
     @Override
     public List<Employee> getAllEmployees() {
@@ -80,7 +79,7 @@ public class StatisticsServiceImpl implements StatisticsService {
                         presence.getEmployee(),
                         startDate.with(DayOfWeek.MONDAY),
                         startDate.with(DayOfWeek.FRIDAY),
-                        true
+                        PresenceStatus.PRESENT
                 );
                 weeklyPresence.put("Week " + (i + 1), count);
                 startDate = startDate.plusWeeks(1);
@@ -92,7 +91,7 @@ public class StatisticsServiceImpl implements StatisticsService {
                     (Map<String, List<String>>) squadStats.get("monthlyPresence") :
                     new HashMap<>();
             List<String> daysOfMonth = presenceRepository.findByEmployeeAndPresent(
-                            presence.getEmployee(), true).stream()
+                            presence.getEmployee(), PresenceStatus.PRESENT).stream()
                     .map(p -> p.getDate().getDayOfWeek().toString())
                     .distinct()
                     .collect(Collectors.toList());
@@ -125,7 +124,6 @@ public class StatisticsServiceImpl implements StatisticsService {
         return totalEmployeesInSquad == 0 ? 0 : (double) presentEmployeesInSquad / totalEmployeesInSquad * 100;
     }
 
-
     @Override
     public double calculateSquadPresencePercentagePerMonth(String squadName, LocalDate monthStartDate) {
         // Calculate the number of employees present in the squad for the given month
@@ -135,7 +133,6 @@ public class StatisticsServiceImpl implements StatisticsService {
         // Calculate the percentage
         return (double) presentEmployeesInSquad / totalEmployeesInSquad * 100;
     }
-
 
     // Helper method to calculate employee presence statistics
     private Map<String, Object> calculateEmployeePresenceStatistics(Employee employee) {
@@ -149,7 +146,7 @@ public class StatisticsServiceImpl implements StatisticsService {
                     employee,
                     startDate.with(DayOfWeek.MONDAY),
                     startDate.with(DayOfWeek.FRIDAY),
-                    true
+                    PresenceStatus.PRESENT // Update to use PresenceStatus enum
             );
             weeklyPresence.put("Week " + (i + 1), count);
             startDate = startDate.plusWeeks(1);
@@ -157,7 +154,8 @@ public class StatisticsServiceImpl implements StatisticsService {
 
         // Calculate monthly presence
         List<String> daysOfMonth = presenceRepository.findByEmployeeAndPresent(
-                        employee, true).stream()
+                        employee, PresenceStatus.PRESENT) // Update to use PresenceStatus enum
+                .stream()
                 .map(p -> p.getDate().getDayOfWeek().toString())
                 .distinct()
                 .collect(Collectors.toList());
@@ -170,26 +168,25 @@ public class StatisticsServiceImpl implements StatisticsService {
         return employeeStats;
     }
 
-
     @Override
-    public String calculateEmployeePresenceStatus(String employeeName) {
+    public String calculateEmployeePresenceStatus(String employeeName) throws PresenceStatisticsNotFoundException, NoSquadAssignedException, EmployeeNotFoundException {
         // Find the employee by name
         Optional<Employee> optionalEmployee = employeeRepository.findByResourceName(employeeName);
         if (optionalEmployee.isEmpty()) {
-            return "Employee with name " + employeeName + " not found.";
+            throw new EmployeeNotFoundException("Employee with name " + employeeName + " not found.");
         }
 
         Employee employee = optionalEmployee.get();
         String squad = employee.getSquad();
 
         if (squad == null || squad.isEmpty()) {
-            return "Employee " + employeeName + " has no squad assigned.";
+            throw new NoSquadAssignedException("Employee " + employeeName + " has no squad assigned.");
         }
 
         // Retrieve the squad's presence statistics
         Optional<SquadPresenceStatistics> optionalStatistics = squadPresenceStatisticsRepository.findBySquad(squad);
         if (optionalStatistics.isEmpty()) {
-            return "No presence statistics found for squad " + squad + ".";
+            throw new PresenceStatisticsNotFoundException("No presence statistics found for squad " + squad + ".");
         }
 
         SquadPresenceStatistics statistics = optionalStatistics.get();
@@ -244,9 +241,8 @@ public class StatisticsServiceImpl implements StatisticsService {
         if (dayOfWeek.equalsIgnoreCase("SATURDAY") || dayOfWeek.equalsIgnoreCase("SUNDAY")) {
             return false; // Exclude weekends
         }
-        return presenceRepository.existsByEmployeeAndDateAndPresent(employee, dayOfWeekToDateTime(dayOfWeek), true);
+        return presenceRepository.existsByEmployeeAndDateAndPresent(employee, dayOfWeekToDateTime(dayOfWeek), PresenceStatus.PRESENT);
     }
-
 
     // Helper method to convert day of week string to LocalDate
     private LocalDate dayOfWeekToDateTime(String dayOfWeek) {
