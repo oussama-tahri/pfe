@@ -1,6 +1,8 @@
 package com.tahrioussama.employeemanagement.services;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.tahrioussama.employeemanagement.dtos.EmployeeDTO;
+import com.tahrioussama.employeemanagement.dtos.PresenceDTO;
 import com.tahrioussama.employeemanagement.entities.Employee;
 import com.tahrioussama.employeemanagement.entities.Presence;
 import com.tahrioussama.employeemanagement.exceptions.EmployeeNotFoundException;
@@ -12,8 +14,8 @@ import java.util.List;
 
 public interface StatisticsService {
 
-    List<Employee> getAllEmployees();
-    List<Presence> getPresence();
+    List<EmployeeDTO> getAllEmployees();
+    List<PresenceDTO> getPresence();
     void calculateAndSaveEmployeePresenceStatistics() throws JsonProcessingException;
     void calculateAndSaveSquadPresenceStatistics() throws JsonProcessingException;
     double calculateSquadPresencePercentagePerWeek(String squadName, LocalDate weekStartDate);

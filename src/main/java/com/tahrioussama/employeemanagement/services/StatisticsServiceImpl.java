@@ -1,14 +1,21 @@
 package com.tahrioussama.employeemanagement.services;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.tahrioussama.employeemanagement.dtos.EmployeeDTO;
+import com.tahrioussama.employeemanagement.dtos.EmployeePresenceStatisticsDTO;
+import com.tahrioussama.employeemanagement.dtos.PresenceDTO;
+import com.tahrioussama.employeemanagement.dtos.SquadPresenceStatisticsDTO;
 import com.tahrioussama.employeemanagement.entities.Employee;
-import com.tahrioussama.employeemanagement.entities.EmployeePresenceStatistics;
 import com.tahrioussama.employeemanagement.entities.Presence;
 import com.tahrioussama.employeemanagement.entities.SquadPresenceStatistics;
 import com.tahrioussama.employeemanagement.enums.PresenceStatus;
 import com.tahrioussama.employeemanagement.exceptions.EmployeeNotFoundException;
 import com.tahrioussama.employeemanagement.exceptions.NoSquadAssignedException;
 import com.tahrioussama.employeemanagement.exceptions.PresenceStatisticsNotFoundException;
+import com.tahrioussama.employeemanagement.mappers.EmployeeMapper;
+import com.tahrioussama.employeemanagement.mappers.EmployeePresenceStatisticsMapper;
+import com.tahrioussama.employeemanagement.mappers.PresenceMapper;
+import com.tahrioussama.employeemanagement.mappers.SquadPresenceStatisticsMapper;
 import com.tahrioussama.employeemanagement.repositories.EmployeePresenceStatisticsRepository;
 import com.tahrioussama.employeemanagement.repositories.EmployeeRepository;
 import com.tahrioussama.employeemanagement.repositories.PresenceRepository;
@@ -33,15 +40,25 @@ public class StatisticsServiceImpl implements StatisticsService {
     private final EmployeeRepository employeeRepository;
     private final EmployeePresenceStatisticsRepository employeePresenceStatisticsRepository;
     private final SquadPresenceStatisticsRepository squadPresenceStatisticsRepository;
+    private final EmployeeMapper employeeMapper;
+    private final PresenceMapper presenceMapper;
+    private final EmployeePresenceStatisticsMapper employeePresenceStatisticsMapper;
+    private final SquadPresenceStatisticsMapper squadPresenceStatisticsMapper;
 
     @Override
-    public List<Employee> getAllEmployees() {
-        return employeeRepository.findAll();
+    public List<EmployeeDTO> getAllEmployees() {
+        List<Employee> employees = employeeRepository.findAll();
+        return employees.stream()
+                .map(employeeMapper::employeeToDTO)
+                .collect(Collectors.toList());
     }
 
     @Override
-    public List<Presence> getPresence() {
-        return presenceRepository.findAll();
+    public List<PresenceDTO> getPresence() {
+        List<Presence> presences = presenceRepository.findAll();
+        return presences.stream()
+                .map(presenceMapper::presenceToDTO)
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -52,11 +69,11 @@ public class StatisticsServiceImpl implements StatisticsService {
             Map<String, Object> employeeStats = calculateEmployeePresenceStatistics(employee);
 
             // Create and save EmployeePresenceStatistics entity
-            EmployeePresenceStatistics presenceStatistics = new EmployeePresenceStatistics();
-            presenceStatistics.setEmployee(employee);
-            presenceStatistics.setStatistics(mapToJsonString(employeeStats));
+            EmployeePresenceStatisticsDTO presenceStatisticsDTO = new EmployeePresenceStatisticsDTO();
+            presenceStatisticsDTO.setEmployee(employeeMapper.employeeToDTO(employee));
+            presenceStatisticsDTO.setStatistics(mapToJsonString(employeeStats));
 
-            employeePresenceStatisticsRepository.save(presenceStatistics);
+            employeePresenceStatisticsRepository.save(employeePresenceStatisticsMapper.dtoToPresenceStatistics(presenceStatisticsDTO));
         }
     }
 
@@ -103,11 +120,11 @@ public class StatisticsServiceImpl implements StatisticsService {
 
         // Create and save SquadPresenceStatistics entities
         for (Map.Entry<String, Map<String, Object>> entry : squadStatistics.entrySet()) {
-            SquadPresenceStatistics presenceStatistics = new SquadPresenceStatistics();
-            presenceStatistics.setSquad(entry.getKey());
-            presenceStatistics.setStatistics(mapToJsonString(entry.getValue()));
+            SquadPresenceStatisticsDTO presenceStatisticsDTO = new SquadPresenceStatisticsDTO();
+            presenceStatisticsDTO.setSquad(entry.getKey());
+            presenceStatisticsDTO.setStatistics(mapToJsonString(entry.getValue()));
 
-            squadPresenceStatisticsRepository.save(presenceStatistics);
+            squadPresenceStatisticsRepository.save(squadPresenceStatisticsMapper.dtoToPresenceStatistics(presenceStatisticsDTO));
         }
     }
 

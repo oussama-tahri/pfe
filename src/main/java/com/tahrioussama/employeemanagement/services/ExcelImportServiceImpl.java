@@ -1,9 +1,13 @@
 package com.tahrioussama.employeemanagement.services;
 
+import com.tahrioussama.employeemanagement.dtos.EmployeeDTO;
+import com.tahrioussama.employeemanagement.dtos.PresenceDTO;
 import com.tahrioussama.employeemanagement.entities.Employee;
 import com.tahrioussama.employeemanagement.entities.Presence;
 import com.tahrioussama.employeemanagement.enums.PresenceStatus;
 import com.tahrioussama.employeemanagement.exceptions.ExcelImportException;
+import com.tahrioussama.employeemanagement.mappers.EmployeeMapper;
+import com.tahrioussama.employeemanagement.mappers.PresenceMapper;
 import com.tahrioussama.employeemanagement.repositories.EmployeeRepository;
 import com.tahrioussama.employeemanagement.repositories.PresenceRepository;
 import lombok.AllArgsConstructor;
@@ -27,8 +31,11 @@ import java.util.List;
 @AllArgsConstructor
 public class ExcelImportServiceImpl implements ExcelImportService {
 
-    private final EmployeeRepository employeeRepository;
-    private final PresenceRepository presenceRepository;
+    private EmployeeRepository employeeRepository;
+    private PresenceRepository presenceRepository;
+
+    private EmployeeMapper employeeMapper;
+    private PresenceMapper presenceMapper;
 
     @Override
     public void importDataFromExcel(MultipartFile file) throws ExcelImportException {
@@ -71,20 +78,16 @@ public class ExcelImportServiceImpl implements ExcelImportService {
             return;
         }
 
-        // Assuming the structure of your Excel file, map data to entities
-        String resourceName = formatter.formatCellValue(row.getCell(0));
-        String site = formatter.formatCellValue(row.getCell(1));
-        String tribe = formatter.formatCellValue(row.getCell(2));
-        String squad = formatter.formatCellValue(row.getCell(3));
-        String commentaire = formatter.formatCellValue(row.getCell(4));
+        // Assuming the structure of your Excel file, map data to DTOs
+        EmployeeDTO employeeDTO = new EmployeeDTO();
+        employeeDTO.setResourceName(formatter.formatCellValue(row.getCell(0)));
+        employeeDTO.setSite(formatter.formatCellValue(row.getCell(1)));
+        employeeDTO.setTribe(formatter.formatCellValue(row.getCell(2)));
+        employeeDTO.setSquad(formatter.formatCellValue(row.getCell(3)));
+        employeeDTO.setCommentaire(formatter.formatCellValue(row.getCell(4)));
 
-        // Create and save Employee entity
-        Employee employee = new Employee();
-        employee.setResourceName(resourceName.toLowerCase());
-        employee.setSite(site);
-        employee.setTribe(tribe);
-        employee.setSquad(squad);
-        employee.setCommentaire(commentaire);
+        // Map DTO to entity and save
+        Employee employee = employeeMapper.dtoToEmployee(employeeDTO);
         try {
             employeeRepository.save(employee);
         } catch (Exception e) {
@@ -105,35 +108,35 @@ public class ExcelImportServiceImpl implements ExcelImportService {
         }
 
         // Extract presence data horizontally and map it to dates
-        List<PresenceStatus> presenceList = new ArrayList<>();
+        List<PresenceDTO> presenceDTOList = new ArrayList<>();
         for (int i = 5; i < row.getLastCellNum(); i++) {
             String presenceValue = formatter.formatCellValue(row.getCell(i));
             if (!presenceValue.isEmpty()) {
                 // Parse presence value as PresenceStatus enum
-                PresenceStatus presenceStatus = presenceValue.equals("1") ? PresenceStatus.PRESENT : PresenceStatus.ABSENT;
-                presenceList.add(presenceStatus);
+                PresenceDTO presenceDTO = new PresenceDTO();
+                presenceDTO.setDate(dates.get(i - 5)); // i - 5 to map to correct date
+                presenceDTO.setPresent(presenceValue.equals("1") ? PresenceStatus.PRESENT : PresenceStatus.ABSENT);
+                presenceDTO.setEmployeeName(employeeDTO.getResourceName());
+                presenceDTOList.add(presenceDTO);
             }
         }
 
         // Limit the presence list to the first 21 elements
-        if (presenceList.size() > 21) {
-            presenceList = presenceList.subList(0, 21);
+        if (presenceDTOList.size() > 21) {
+            presenceDTOList = presenceDTOList.subList(0, 21);
         }
 
-        // Create and save Presence entities with dates mapped to presence values
-        for (int i = 0; i < dates.size(); i++) {
-            LocalDate date = dates.get(i);
-            PresenceStatus presenceStatus = i < presenceList.size() ? presenceList.get(i) : PresenceStatus.ABSENT; // Default to ABSENT if no presence value is provided
-            Presence presence = new Presence();
+        // Map DTO to entity and save
+        List<Presence> presenceList = new ArrayList<>();
+        for (PresenceDTO presenceDTO : presenceDTOList) {
+            Presence presence = presenceMapper.dtoToPresence(presenceDTO);
             presence.setEmployee(employee);
-            presence.setEmployeeName(resourceName);
-            presence.setDate(date);
-            presence.setPresent(presenceStatus);
-            try {
-                presenceRepository.save(presence);
-            } catch (Exception e) {
-                throw new ExcelImportException("Failed to save presence data.", e);
-            }
+            presenceList.add(presence);
+        }
+        try {
+            presenceRepository.saveAll(presenceList);
+        } catch (Exception e) {
+            throw new ExcelImportException("Failed to save presence data.", e);
         }
     }
 }

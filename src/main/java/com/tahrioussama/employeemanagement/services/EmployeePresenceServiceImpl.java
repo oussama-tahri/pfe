@@ -1,11 +1,13 @@
 package com.tahrioussama.employeemanagement.services;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.tahrioussama.employeemanagement.dtos.EmployeePresenceStatisticsDTO;
 import com.tahrioussama.employeemanagement.entities.Employee;
-import com.tahrioussama.employeemanagement.entities.EmployeePresenceStatistics;
 import com.tahrioussama.employeemanagement.entities.Presence;
 import com.tahrioussama.employeemanagement.enums.PresenceStatus;
 import com.tahrioussama.employeemanagement.exceptions.EmployeeNotFoundException;
+import com.tahrioussama.employeemanagement.mappers.EmployeeMapper;
+import com.tahrioussama.employeemanagement.mappers.EmployeePresenceStatisticsMapper;
 import com.tahrioussama.employeemanagement.repositories.EmployeePresenceStatisticsRepository;
 import com.tahrioussama.employeemanagement.repositories.EmployeeRepository;
 import com.tahrioussama.employeemanagement.repositories.PresenceRepository;
@@ -14,8 +16,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-import java.time.*;
-import java.util.*;
+import java.time.DayOfWeek;
+import java.time.LocalDate;
+import java.time.Month;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static com.tahrioussama.employeemanagement.config.JsonUtils.objectMapper;
@@ -24,10 +31,13 @@ import static com.tahrioussama.employeemanagement.config.JsonUtils.objectMapper;
 @AllArgsConstructor
 public class EmployeePresenceServiceImpl implements EmployeePresenceService {
 
-    private PresenceRepository presenceRepository;
-    private EmployeeRepository employeeRepository;
-    private EmployeePresenceStatisticsRepository employeePresenceStatisticsRepository;
+    private final PresenceRepository presenceRepository;
+    private final EmployeeRepository employeeRepository;
+    private final EmployeePresenceStatisticsRepository employeePresenceStatisticsRepository;
     private static final Logger LOGGER = LoggerFactory.getLogger(EmployeePresenceServiceImpl.class);
+
+    private final EmployeePresenceStatisticsMapper presenceStatisticsMapper;
+    private final EmployeeMapper employeeMapper;
 
     @Override
     public void updatePresenceValueForDate(Long employeeId, LocalDate providedDate, PresenceStatus newValue) throws EmployeeNotFoundException {
@@ -60,18 +70,14 @@ public class EmployeePresenceServiceImpl implements EmployeePresenceService {
         // Calculate and save presence statistics for the given employee
         Map<String, Object> employeeStats = calculateEmployeePresenceStatistics(employee);
 
-        // Find existing EmployeePresenceStatistics entity or create a new one
-        Optional<EmployeePresenceStatistics> optionalStatistics = employeePresenceStatisticsRepository.findByEmployee(employee);
-        EmployeePresenceStatistics presenceStatistics = optionalStatistics.orElse(new EmployeePresenceStatistics());
-
-        // Update entity fields
-        presenceStatistics.setEmployee(employee);
-        presenceStatistics.setStatistics(mapToJsonString(employeeStats));
+        // Convert the map to DTO
+        EmployeePresenceStatisticsDTO presenceStatisticsDTO = new EmployeePresenceStatisticsDTO();
+        presenceStatisticsDTO.setEmployee(employeeMapper.employeeToDTO(employee));
+        presenceStatisticsDTO.setStatistics(mapToJsonString(employeeStats));
 
         // Save the updated entity
-        employeePresenceStatisticsRepository.save(presenceStatistics);
+        employeePresenceStatisticsRepository.save(presenceStatisticsMapper.dtoToPresenceStatistics(presenceStatisticsDTO));
     }
-
 
     // Helper method to calculate employee presence statistics
     private Map<String, Object> calculateEmployeePresenceStatistics(Employee employee) {
@@ -107,10 +113,10 @@ public class EmployeePresenceServiceImpl implements EmployeePresenceService {
     }
 
     // Helper method to convert map to JSON string
-    private String mapToJsonString(Map<String, Object> map) {
+    private String mapToJsonString(Object object) {
         try {
-            // Use ObjectMapper to convert map to JSON string
-            return objectMapper.writeValueAsString(map);
+            // Use ObjectMapper to convert object to JSON string
+            return objectMapper.writeValueAsString(object);
         } catch (JsonProcessingException e) {
             // Log and throw custom exception for JSON processing failure
             LOGGER.error("Error processing JSON: {}", e.getMessage());

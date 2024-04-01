@@ -1,7 +1,7 @@
 package com.tahrioussama.employeemanagement.controller;
 
-import com.tahrioussama.employeemanagement.entities.Employee;
-import com.tahrioussama.employeemanagement.entities.Presence;
+import com.tahrioussama.employeemanagement.dtos.EmployeeDTO;
+import com.tahrioussama.employeemanagement.dtos.PresenceDTO;
 import com.tahrioussama.employeemanagement.services.StatisticsService;
 import com.tahrioussama.employeemanagement.exceptions.PresenceStatisticsNotFoundException;
 import com.tahrioussama.employeemanagement.exceptions.NoSquadAssignedException;
@@ -24,12 +24,12 @@ public class StatisticsController {
     private final StatisticsService statisticsService;
 
     @GetMapping("/getEmployees")
-    public List<Employee> getAllEmployees() {
+    public List<EmployeeDTO> getAllEmployees() {
         return statisticsService.getAllEmployees();
     }
 
     @GetMapping("/getPresence")
-    public List<Presence> getPresence() {
+    public List<PresenceDTO> getPresence() {
         return statisticsService.getPresence();
     }
 
