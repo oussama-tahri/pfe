@@ -18,6 +18,7 @@ public class EmployeePresenceController {
 
     private final EmployeePresenceService presenceService;
 
+    // POST http://localhost:8080/presence/107?date=2024-03-28&newValue=PRESENT
     @PutMapping("/{employeeId}")
     public ResponseEntity<String> updatePresenceValue(
             @PathVariable Long employeeId,
@@ -30,9 +31,6 @@ public class EmployeePresenceController {
         } catch (EmployeeNotFoundException e) {
             // Handle employee not found exception
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
-        } catch (IllegalArgumentException e) {
-            // Handle invalid input arguments
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         } catch (Exception e) {
             // Handle other unexpected errors
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred");

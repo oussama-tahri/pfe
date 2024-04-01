@@ -23,16 +23,22 @@ public class StatisticsController {
 
     private final StatisticsService statisticsService;
 
+
+    // GET http://localhost:8080/api/statistics/getEmployees
     @GetMapping("/getEmployees")
     public List<EmployeeDTO> getAllEmployees() {
         return statisticsService.getAllEmployees();
     }
 
+
+    // GET http://localhost:8080/api/statistics/getPresence
     @GetMapping("/getPresence")
     public List<PresenceDTO> getPresence() {
         return statisticsService.getPresence();
     }
 
+
+    // POST http://localhost:8080/api/statistics/employees
     @PostMapping("/employees")
     public ResponseEntity<String> calculateAndSaveEmployeePresenceStatistics() {
         try {
@@ -46,6 +52,8 @@ public class StatisticsController {
         }
     }
 
+
+    // POST http://localhost:8080/api/statistics/squads
     @PostMapping("/squads")
     public ResponseEntity<String> calculateAndSaveSquadPresenceStatistics() {
         try {
@@ -59,6 +67,8 @@ public class StatisticsController {
         }
     }
 
+
+    // GET http://localhost:8080/api/statistics/presence-per-week/CBE3/2024-03-01
     @GetMapping("/presence-per-week/{squadName}/{weekStartDate}")
     public ResponseEntity<Double> getSquadPresencePercentagePerWeek(
             @PathVariable String squadName,
@@ -75,6 +85,8 @@ public class StatisticsController {
         }
     }
 
+
+    // GET http://localhost:8080/api/statistics/presence-per-month/CBE3/2024-03-01
     @GetMapping("/presence-per-month/{squadName}/{monthStartDate}")
     public ResponseEntity<Double> getSquadPresencePercentagePerMonth(
             @PathVariable String squadName,
@@ -91,6 +103,8 @@ public class StatisticsController {
         }
     }
 
+
+    // GET http://localhost:8080/api/statistics/presence-status
     @GetMapping("/presence-status")
     public ResponseEntity<String> getEmployeePresenceStatus(@RequestParam String employeeName) {
         try {

@@ -78,15 +78,23 @@ public class ExcelImportServiceImpl implements ExcelImportService {
             return;
         }
 
-        // Assuming the structure of your Excel file, map data to DTOs
-        EmployeeDTO employeeDTO = new EmployeeDTO();
-        employeeDTO.setResourceName(formatter.formatCellValue(row.getCell(0)));
-        employeeDTO.setSite(formatter.formatCellValue(row.getCell(1)));
-        employeeDTO.setTribe(formatter.formatCellValue(row.getCell(2)));
-        employeeDTO.setSquad(formatter.formatCellValue(row.getCell(3)));
-        employeeDTO.setCommentaire(formatter.formatCellValue(row.getCell(4)));
+        // Assuming the structure of your Excel file, map data to entities
+        String resourceName = formatter.formatCellValue(row.getCell(0));
+        String site = formatter.formatCellValue(row.getCell(1));
+        String tribe = formatter.formatCellValue(row.getCell(2));
+        String squad = formatter.formatCellValue(row.getCell(3));
+        String commentaire = formatter.formatCellValue(row.getCell(4));
 
-        // Map DTO to entity and save
+        // Map data to EmployeeDTO
+        EmployeeDTO employeeDTO = new EmployeeDTO();
+        employeeDTO.getId();
+        employeeDTO.setResourceName(resourceName.toLowerCase());
+        employeeDTO.setSite(site);
+        employeeDTO.setTribe(tribe);
+        employeeDTO.setSquad(squad);
+        employeeDTO.setCommentaire(commentaire);
+
+        // Convert EmployeeDTO to Employee entity using mapper
         Employee employee = employeeMapper.dtoToEmployee(employeeDTO);
         try {
             employeeRepository.save(employee);
@@ -108,35 +116,36 @@ public class ExcelImportServiceImpl implements ExcelImportService {
         }
 
         // Extract presence data horizontally and map it to dates
-        List<PresenceDTO> presenceDTOList = new ArrayList<>();
+        List<PresenceStatus> presenceList = new ArrayList<>();
         for (int i = 5; i < row.getLastCellNum(); i++) {
             String presenceValue = formatter.formatCellValue(row.getCell(i));
             if (!presenceValue.isEmpty()) {
                 // Parse presence value as PresenceStatus enum
-                PresenceDTO presenceDTO = new PresenceDTO();
-                presenceDTO.setDate(dates.get(i - 5)); // i - 5 to map to correct date
-                presenceDTO.setPresent(presenceValue.equals("1") ? PresenceStatus.PRESENT : PresenceStatus.ABSENT);
-                presenceDTO.setEmployeeName(employeeDTO.getResourceName());
-                presenceDTOList.add(presenceDTO);
+                PresenceStatus presenceStatus = presenceValue.equals("1") ? PresenceStatus.PRESENT : PresenceStatus.ABSENT;
+                presenceList.add(presenceStatus);
             }
         }
 
         // Limit the presence list to the first 21 elements
-        if (presenceDTOList.size() > 21) {
-            presenceDTOList = presenceDTOList.subList(0, 21);
+        if (presenceList.size() > 21) {
+            presenceList = presenceList.subList(0, 21);
         }
 
-        // Map DTO to entity and save
-        List<Presence> presenceList = new ArrayList<>();
-        for (PresenceDTO presenceDTO : presenceDTOList) {
-            Presence presence = presenceMapper.dtoToPresence(presenceDTO);
+        // Create and save Presence entities with dates mapped to presence values
+        for (int i = 0; i < dates.size(); i++) {
+            LocalDate date = dates.get(i);
+            PresenceStatus presenceStatus = i < presenceList.size() ? presenceList.get(i) : PresenceStatus.ABSENT; // Default to ABSENT if no presence value is provided
+            Presence presence = new Presence();
             presence.setEmployee(employee);
-            presenceList.add(presence);
-        }
-        try {
-            presenceRepository.saveAll(presenceList);
-        } catch (Exception e) {
-            throw new ExcelImportException("Failed to save presence data.", e);
+            presence.setEmployeeName(employee.getResourceName());
+            presence.setDate(date);
+            presence.setPresent(presenceStatus);
+            try {
+                presenceRepository.save(presence);
+                presenceMapper.presenceToDTO(presence);
+            } catch (Exception e) {
+                throw new ExcelImportException("Failed to save presence data.", e);
+            }
         }
     }
 }
