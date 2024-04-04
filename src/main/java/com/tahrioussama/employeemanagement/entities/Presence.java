@@ -18,7 +18,20 @@ public class Presence {
     private PresenceStatus present;
 
     // Relation avec l'employé
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.PERSIST)
     private Employee employee;
     private String employeeName;
+
+    public Presence(LocalDate date, PresenceStatus present, Employee employee) {
+        this.date = date;
+        this.present = present;
+        this.employee = employee;
+    }
+
+    public Presence(Long id, LocalDate date, PresenceStatus present, Employee employee) {
+        this.id = id;
+        this.date = date;
+        this.present = present;
+        this.employee = employee;
+    }
 }

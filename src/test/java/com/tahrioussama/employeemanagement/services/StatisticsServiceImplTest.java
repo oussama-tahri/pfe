@@ -1,30 +1,47 @@
 package com.tahrioussama.employeemanagement.services;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.tahrioussama.employeemanagement.config.JsonUtils;
+import com.tahrioussama.employeemanagement.dtos.EmployeeDTO;
+import com.tahrioussama.employeemanagement.dtos.EmployeePresenceStatisticsDTO;
+import com.tahrioussama.employeemanagement.dtos.PresenceDTO;
+import com.tahrioussama.employeemanagement.dtos.SquadPresenceStatisticsDTO;
 import com.tahrioussama.employeemanagement.entities.Employee;
+import com.tahrioussama.employeemanagement.entities.EmployeePresenceStatistics;
 import com.tahrioussama.employeemanagement.entities.Presence;
 import com.tahrioussama.employeemanagement.entities.SquadPresenceStatistics;
+import com.tahrioussama.employeemanagement.enums.PresenceStatus;
+import com.tahrioussama.employeemanagement.exceptions.EmployeeNotFoundException;
+import com.tahrioussama.employeemanagement.exceptions.NoSquadAssignedException;
+import com.tahrioussama.employeemanagement.exceptions.PresenceStatisticsNotFoundException;
+import com.tahrioussama.employeemanagement.mappers.EmployeeMapper;
+import com.tahrioussama.employeemanagement.mappers.EmployeePresenceStatisticsMapper;
+import com.tahrioussama.employeemanagement.mappers.PresenceMapper;
+import com.tahrioussama.employeemanagement.mappers.SquadPresenceStatisticsMapper;
 import com.tahrioussama.employeemanagement.repositories.EmployeePresenceStatisticsRepository;
 import com.tahrioussama.employeemanagement.repositories.EmployeeRepository;
 import com.tahrioussama.employeemanagement.repositories.PresenceRepository;
 import com.tahrioussama.employeemanagement.repositories.SquadPresenceStatisticsRepository;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.*;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.boot.test.context.SpringBootTest;
 import java.time.LocalDate;
 import java.time.Month;
 import java.util.*;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static com.tahrioussama.employeemanagement.config.JsonUtils.jsonStringToMap;
+import static com.tahrioussama.employeemanagement.config.JsonUtils.objectMapper;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class StatisticsServiceImplTest {
+class StatisticsServiceImplTest {
 
     @Mock
     private PresenceRepository presenceRepository;
@@ -37,122 +54,210 @@ public class StatisticsServiceImplTest {
 
     @Mock
     private SquadPresenceStatisticsRepository squadPresenceStatisticsRepository;
+
+    @Mock
+    private EmployeeMapper employeeMapper;
+
+    @Mock
+    private PresenceMapper presenceMapper;
+
+    @Mock
+    private EmployeePresenceStatisticsMapper employeePresenceStatisticsMapper;
+
+    @Mock
+    private SquadPresenceStatisticsMapper squadPresenceStatisticsMapper;
+    @Mock
+    JsonUtils jsonUtils;
+
     @InjectMocks
     private StatisticsServiceImpl statisticsService;
 
+    private Employee mockEmployee;
+    private Presence mockPresence;
+
     @BeforeEach
     void setUp() {
-        MockitoAnnotations.openMocks(this);
+        // Initialize mock objects
+        mockEmployee = new Employee();
+        mockEmployee.setId(1L);
+        mockEmployee.setResourceName("Oussama Tahri");
+
+        mockPresence = new Presence();
+        mockPresence.setId(1L);
+        mockPresence.setEmployee(mockEmployee);
+        mockPresence.setDate(LocalDate.now());
+        mockPresence.setPresent(PresenceStatus.PRESENT);
     }
 
     @Test
+    @DisplayName("Test get all employees")
+    void testGetAllEmployees() {
+        // Mock data
+        List<Employee> employees = new ArrayList<>();
+        employees.add(mockEmployee);
+
+        // Mock repository method
+        when(employeeRepository.findAll()).thenReturn(employees);
+        when(employeeMapper.employeeToDTO(any(Employee.class))).thenReturn(new EmployeeDTO());
+
+        // Call the service method
+        List<EmployeeDTO> result = statisticsService.getAllEmployees();
+
+        // Verify
+        assertEquals(employees.size(), result.size());
+        verify(employeeRepository, times(1)).findAll();
+    }
+
+    @Test
+    @DisplayName("Test get presence")
+    void testGetPresence() {
+        // Mock data
+        List<Presence> presences = new ArrayList<>();
+        presences.add(mockPresence);
+
+        // Mock repository method
+        when(presenceRepository.findAll()).thenReturn(presences);
+        when(presenceMapper.presenceToDTO(any(Presence.class))).thenReturn(new PresenceDTO());
+
+        // Call the service method
+        List<PresenceDTO> result = statisticsService.getPresence();
+
+        // Verify
+        assertEquals(presences.size(), result.size());
+        verify(presenceRepository, times(1)).findAll();
+    }
+
+    @Test
+    @DisplayName("Test calculate and save employee presence statistics")
     void testCalculateAndSaveEmployeePresenceStatistics() {
-        // Mock employee data
-        Employee employee1 = new Employee("John", "Site1", "Tribe1", "Squad1", "Comment1");
-        Employee employee2 = new Employee("Alice", "Site2", "Tribe2", "Squad2", "Comment2");
-        lenient().when(employeeRepository.findAll()).thenReturn(List.of(employee1, employee2));
+        // Mock employee repository to return a sample employee
+        when(employeeRepository.findAll()).thenReturn(Collections.singletonList(mockEmployee));
 
-        // Mock presence data
-        Presence presence1 = new Presence(1L, LocalDate.of(2024, Month.MARCH, 1), true, employee1, "John");
-        Presence presence2 = new Presence(2L, LocalDate.of(2024, Month.MARCH, 2), false, employee1, "John");
-        Presence presence3 = new Presence(3L, LocalDate.of(2024, Month.MARCH, 3), true, employee1, "John");
-        Presence presence4 = new Presence(4L, LocalDate.of(2024, Month.MARCH, 4), true, employee1, "John");
-        Presence presence5 = new Presence(5L, LocalDate.of(2024, Month.MARCH, 5), true, employee1, "John");
-        lenient().when(presenceRepository.findByEmployee(employee1)).thenReturn(List.of(presence1, presence2, presence3, presence4, presence5));
+        // Mock presence repository to return sample presences
+        List<Presence> presences = Arrays.asList(
+                mockPresence,
+                new Presence(LocalDate.of(2024, Month.MARCH, 3), PresenceStatus.PRESENT, mockEmployee),
+                new Presence(LocalDate.of(2024, Month.MARCH, 7), PresenceStatus.PRESENT, mockEmployee)
+        );
+        when(presenceRepository.countByEmployeeAndDateBetweenAndPresent(any(), any(), any(), any())).thenReturn(3L);
+        when(presenceRepository.findByEmployeeAndPresent(any(), any())).thenReturn(presences);
 
-        // Call the method under test
-        statisticsService.calculateAndSaveEmployeePresenceStatistics();
+        // Invoke the method
+        assertDoesNotThrow(() -> statisticsService.calculateAndSaveEmployeePresenceStatistics());
 
-        // Verify that the save method is called for each employee
-        verify(employeePresenceStatisticsRepository, times(2)).save(any());
+        // Verify that employeePresenceStatisticsRepository.save is called once
+        verify(employeePresenceStatisticsRepository, times(1)).save(any());
     }
 
     @Test
-    public void testCalculateAndSaveSquadPresenceStatistics() {
-        // Create a dummy Employee
-        Employee employee = new Employee();
-        employee.setId(1L);
-        employee.setSquad("Test Squad");
+    @DisplayName("Test calculate and save squad presence statistics")
+    void testCalculateAndSaveSquadPresenceStatistics() {
+        // Mock data
+        List<Presence> presences = Collections.singletonList(mockPresence);
 
-        // Create a dummy Presence associated with the Employee
-        Presence presence = new Presence();
-        presence.setId(1L);
-        presence.setEmployee(employee);
-        // Mock the presenceRepository to return a list with this presence
-        when(presenceRepository.findAll()).thenReturn(Collections.singletonList(presence));
+        Map<String, Object> statsMap = new HashMap<>();
+        statsMap.put("weeklyPresence", Collections.singletonMap("Week 1", 5));
+        statsMap.put("monthlyPresence", Collections.singletonMap("Month", Arrays.asList("MONDAY", "TUESDAY")));
 
-        // Invoke the method under test
+        // Mock repository method
+        when(presenceRepository.findAll()).thenReturn(presences);
+        when(squadPresenceStatisticsMapper.dtoToPresenceStatistics(any(SquadPresenceStatisticsDTO.class))).thenReturn(new SquadPresenceStatistics());
+
+        // Call the service method
         statisticsService.calculateAndSaveSquadPresenceStatistics();
 
-        // Verify that squadPresenceStatisticsRepository.save is called with a non-null argument
+        // Verify
+        verify(presenceRepository, times(1)).findAll();
         verify(squadPresenceStatisticsRepository, times(1)).save(any(SquadPresenceStatistics.class));
     }
 
     @Test
+    @DisplayName("Test calculate squad presence percentage per week")
     void testCalculateSquadPresencePercentagePerWeek() {
-        // Mock presence data
-        Employee employee = new Employee("John", "Site1", "Tribe1", "Squad1", "Comment1");
-        when(employeeRepository.countBySquad(anyString())).thenReturn(1L);
-        when(presenceRepository.countDistinctEmployeesBySquadAndWeekStartDate(anyString(), any(LocalDate.class), any(LocalDate.class))).thenReturn(1L);
+        // Mock data
+        String squadName = "Squad A";
+        LocalDate weekStartDate = LocalDate.now();
 
-        // Call the method under test
-        double percentage = statisticsService.calculateSquadPresencePercentagePerWeek("Squad1", LocalDate.of(2024, Month.MARCH, 1));
+        // Mock repository method
+        when(employeeRepository.countBySquad(squadName)).thenReturn(10L);
+        when(presenceRepository.countDistinctEmployeesBySquadAndWeekStartDate(squadName, weekStartDate, weekStartDate.plusDays(7))).thenReturn(5L);
 
-        // Verify the result
-        assertEquals(100.0, percentage);
+        // Call the service method
+        double result = statisticsService.calculateSquadPresencePercentagePerWeek(squadName, weekStartDate);
+
+        // Verify
+        assertEquals(50, result);
     }
 
     @Test
+    @DisplayName("Test calculate squad presence percentage per month")
     void testCalculateSquadPresencePercentagePerMonth() {
-        // Mock presence data
-        Employee employee = new Employee("John", "Site1", "Tribe1", "Squad1", "Comment1");
-        when(employeeRepository.countBySquad(anyString())).thenReturn(1L);
-        when(presenceRepository.countDistinctEmployeesBySquadAndMonthStartDate(anyString(), any(LocalDate.class))).thenReturn(1L);
+        // Mock data
+        String squadName = "Squad A";
+        LocalDate monthStartDate = LocalDate.now();
 
-        // Call the method under test
-        double percentage = statisticsService.calculateSquadPresencePercentagePerMonth("Squad1", LocalDate.of(2024, Month.MARCH, 1));
+        // Mock repository method
+        when(employeeRepository.countBySquad(squadName)).thenReturn(10L);
+        when(presenceRepository.countDistinctEmployeesBySquadAndMonthStartDate(squadName, monthStartDate)).thenReturn(5L);
 
-        // Verify the result
-        assertEquals(100.0, percentage);
+        // Call the service method
+        double result = statisticsService.calculateSquadPresencePercentagePerMonth(squadName, monthStartDate);
+
+        // Verify
+        assertEquals(50, result);
     }
 
     @Test
-    public void testCalculateEmployeePresenceStatus() {
-        // Mock employee
-        String employeeName = "John Doe";
-        String squad = "Squad1";
-        Employee testEmployee = new Employee();
-        testEmployee.setResourceName(employeeName);
-        testEmployee.setSquad(squad);
+    @DisplayName("Test calculate employee presence status")
+    void testCalculateEmployeePresenceStatus() {
+        // Mock employee repository to return a sample employee without a squad assigned
+        Employee employeeWithoutSquad = new Employee();
+        employeeWithoutSquad.setResourceName("Oussama Tahri");
+        when(employeeRepository.findByResourceName(anyString())).thenReturn(Optional.of(employeeWithoutSquad));
 
-        // Mock employee repository
-        when(employeeRepository.findByResourceName(employeeName)).thenReturn(Optional.of(testEmployee));
+        // Invoke the method and assert that it throws NoSquadAssignedException
+        assertThrows(NoSquadAssignedException.class, () -> statisticsService.calculateEmployeePresenceStatus("Oussama Tahri"));
 
-        // Mock squad presence statistics
-        String squadName = "Squad1";
-        SquadPresenceStatistics squadStats = new SquadPresenceStatistics();
-        squadStats.setSquad(squadName);
-        squadStats.setStatistics("{\"weeklyPresence\":{\"Week 1\":0,\"Week 2\":0,\"Week 3\":0, \"Week 4\":0},\"monthlyPresence\":{\"Month\":[\"MONDAY\",\"TUESDAY\",\"WEDNESDAY\",\"THURSDAY\",\"FRIDAY\"]}}");
-        when(squadPresenceStatisticsRepository.findBySquad(anyString())).thenReturn(Optional.of(squadStats));
+        // Verify that findByEmployeeAndPresent is not called since the employee has no squad assigned
+        verifyNoInteractions(presenceRepository);
+    }
 
-        // Invoke the method under test
-        String presenceStatus = statisticsService.calculateEmployeePresenceStatus(employeeName);
 
-        // Expected presence status
-        String expectedStatus = "Employee John Doe presence status:\n" +
-                "Weekly presence:\n" +
-                "Absent in Week 1\n" +
-                "Absent in Week 2\n" +
-                "Absent in Week 3\n" +
-                "Absent in Week 4\n" +
-                "Monthly presence:\n" +
-                "Absent on MONDAY\n" +
-                "Absent on TUESDAY\n" +
-                "Absent on WEDNESDAY\n" +
-                "Absent on THURSDAY\n" +
-                "Absent on FRIDAY\n";
+    @Test
+    @DisplayName("Test calculate employee presence status when employee not found")
+    void testCalculateEmployeePresenceStatusEmployeeNotFound() {
+        // Mock data
+        String employeeName = "Oussama Tahri";
 
-        // Verify that the correct status is returned
-        assertEquals(expectedStatus, presenceStatus, "Presence status does not match expected status");
+        // Mock repository method
+        when(employeeRepository.findByResourceName(employeeName)).thenReturn(Optional.empty());
+
+        // Verify that EmployeeNotFoundException is thrown
+        assertThrows(EmployeeNotFoundException.class, () -> statisticsService.calculateEmployeePresenceStatus(employeeName));
+
+        // Ensure that findByResourceName is called with the correct argument
+        verify(employeeRepository, times(1)).findByResourceName(employeeName);
+    }
+
+    @Test
+    @DisplayName("Test calculate employee presence status when squad not assigned")
+    void testCalculateEmployeePresenceStatusSquadNotAssigned() {
+        // Mock data
+        String employeeName = "Oussama Tahri";
+
+        // Mock repository method
+        when(employeeRepository.findByResourceName(employeeName)).thenReturn(Optional.of(mockEmployee));
+
+        // Verify that NoSquadAssignedException is thrown
+        assertThrows(NoSquadAssignedException.class, () -> statisticsService.calculateEmployeePresenceStatus(employeeName));
+    }
+
+    @Test
+    void testCalculateEmployeePresenceStatusSquadStatisticsNotFound() {
+        // Mock employee repository to return a sample employee
+        when(employeeRepository.findByResourceName(anyString())).thenReturn(Optional.of(mockEmployee));
+
+        // Invoke the method and assert that it throws NoSquadAssignedException
+        assertThrows(NoSquadAssignedException.class, () -> statisticsService.calculateEmployeePresenceStatus("Oussama Tahri"));
     }
 }

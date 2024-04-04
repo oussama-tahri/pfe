@@ -7,7 +7,7 @@ import org.mapstruct.factory.Mappers;
 
 @Mapper(componentModel = "spring")
 public interface EmployeePresenceStatisticsMapper {
-
+    EmployeePresenceStatisticsMapper INSTANCE = Mappers.getMapper(EmployeePresenceStatisticsMapper.class);
     EmployeePresenceStatisticsDTO presenceStatisticsToDTO(EmployeePresenceStatistics presenceStatistics);
     EmployeePresenceStatistics dtoToPresenceStatistics(EmployeePresenceStatisticsDTO presenceStatisticsDTO);
 }

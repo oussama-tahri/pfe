@@ -1,7 +1,10 @@
 package com.tahrioussama.employeemanagement.services;
 
+import com.tahrioussama.employeemanagement.exceptions.ExcelImportException;
 import com.tahrioussama.employeemanagement.repositories.EmployeeRepository;
 import com.tahrioussama.employeemanagement.repositories.PresenceRepository;
+import com.tahrioussama.employeemanagement.mappers.EmployeeMapper;
+import com.tahrioussama.employeemanagement.mappers.PresenceMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,12 +23,16 @@ public class ExcelImportServiceTest {
     private EmployeeRepository employeeRepository;
     @Autowired
     private PresenceRepository presenceRepository;
+    @Autowired
+    private EmployeeMapper employeeMapper;
+    @Autowired
+    private PresenceMapper presenceMapper;
 
     private ExcelImportServiceImpl excelImportService;
 
     @BeforeEach
     void setUp() {
-        excelImportService = new ExcelImportServiceImpl(employeeRepository,presenceRepository);
+        excelImportService = new ExcelImportServiceImpl(employeeRepository, presenceRepository, employeeMapper, presenceMapper);
     }
 
     @Test
@@ -38,7 +45,7 @@ public class ExcelImportServiceTest {
 
         try {
             excelImportService.importDataFromExcel(multipartFile);
-        } catch (IOException e) {
+        } catch (ExcelImportException e) {
             e.printStackTrace();
         }
     }

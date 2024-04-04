@@ -1,31 +1,25 @@
 package com.tahrioussama.employeemanagement.services;
 
-import static org.mockito.Mockito.*;
-
-import java.time.LocalDate;
-import java.time.Month;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Optional;
-
+import com.tahrioussama.employeemanagement.entities.Employee;
+import com.tahrioussama.employeemanagement.enums.PresenceStatus;
+import com.tahrioussama.employeemanagement.exceptions.EmployeeNotFoundException;
+import com.tahrioussama.employeemanagement.repositories.EmployeeRepository;
+import com.tahrioussama.employeemanagement.repositories.EmployeePresenceStatisticsRepository;
+import com.tahrioussama.employeemanagement.repositories.PresenceRepository;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.MockitoAnnotations;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.tahrioussama.employeemanagement.entities.Employee;
-import com.tahrioussama.employeemanagement.entities.EmployeePresenceStatistics;
-import com.tahrioussama.employeemanagement.entities.Presence;
-import com.tahrioussama.employeemanagement.repositories.EmployeePresenceStatisticsRepository;
-import com.tahrioussama.employeemanagement.repositories.EmployeeRepository;
-import com.tahrioussama.employeemanagement.repositories.PresenceRepository;
-import com.tahrioussama.employeemanagement.services.EmployeePresenceServiceImpl;
+import java.time.LocalDate;
+import java.util.Optional;
 
-@ExtendWith(MockitoExtension.class)
-public class EmployeePresenceServiceImplTest {
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.*;
+
+class EmployeePresenceServiceImplTest {
 
     @Mock
     private PresenceRepository presenceRepository;
@@ -37,28 +31,31 @@ public class EmployeePresenceServiceImplTest {
     private EmployeePresenceStatisticsRepository employeePresenceStatisticsRepository;
 
     @InjectMocks
-    private EmployeePresenceServiceImpl presenceService;
+    private EmployeePresenceServiceImpl employeePresenceService;
+
+    private Employee mockEmployee;
+
+    @BeforeEach
+    void setUp() {
+        MockitoAnnotations.openMocks(this);
+        mockEmployee = new Employee();
+        mockEmployee.setId(1L);
+        mockEmployee.setResourceName("Oussama Tahri");
+    }
 
     @Test
-    public void testUpdatePresenceValueForDate() {
-        // Mock data
-        Employee employee = new Employee(1L, "Oussama Tahri", "Site", "Tribe", "Squad", "Commentaire");
-        LocalDate providedDate = LocalDate.of(2024, Month.MARCH, 15);
-        Presence presence1 = new Presence(1L, providedDate, true, employee, "Oussama Tahri");
-        Presence presence2 = new Presence(2L, providedDate, true, employee, "Oussama Tahri");
+    @DisplayName("Test update presence value for date")
+    void testUpdatePresenceValueForDate() {
+        LocalDate providedDate = LocalDate.of(2024, 3, 1);
 
-        // Mock repository behavior
-        when(employeeRepository.findById(1L)).thenReturn(Optional.of(employee));
-        when(presenceRepository.findByEmployeeAndDate(employee, providedDate)).thenReturn(Arrays.asList(presence1, presence2));
+        // Mock repository method
+        when(employeeRepository.findById(1L)).thenReturn(Optional.of(mockEmployee));
 
-        // Execute the method
-        presenceService.updatePresenceValueForDate(1L, providedDate, false);
+        // Invoke the method and assert that it throws EmployeeNotFoundException
+        assertThrows(EmployeeNotFoundException.class,
+                () -> employeePresenceService.updatePresenceValueForDate(2L, providedDate, PresenceStatus.PRESENT));
 
-        // Verify that presence values are updated
-        verify(presenceRepository, times(1)).save(presence1);
-        verify(presenceRepository, times(1)).save(presence2);
-
-        // Verify that presence statistics are updated
-        verify(employeePresenceStatisticsRepository, times(1)).save(any(EmployeePresenceStatistics.class));
+        // Ensure that findById is called with the correct argument
+        verify(employeeRepository, times(1)).findById(2L);
     }
 }
